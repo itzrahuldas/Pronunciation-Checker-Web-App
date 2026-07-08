@@ -1,6 +1,20 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import analyze
+import nltk
+
+# Ensure required NLTK data is downloaded for g2p-en/pronouncing
+try:
+    nltk.data.find('taggers/averaged_perceptron_tagger_eng')
+except LookupError:
+    nltk.download('averaged_perceptron_tagger_eng')
+
+# Some older versions of NLTK/g2p-en might look for this exact name instead
+try:
+    nltk.data.find('taggers/averaged_perceptron_tagger')
+except LookupError:
+    nltk.download('averaged_perceptron_tagger')
+
 
 app = FastAPI(
     title="Pronunciation Checker API",
