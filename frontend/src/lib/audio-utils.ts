@@ -1,18 +1,29 @@
 export function validateAudioDuration(
   file: File,
   minSeconds = 1,
-  maxSeconds = 45
+  maxSeconds = 60
 ): Promise<number> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
-    const audio = new Audio(url);
+    const audio = new Audio();
+
+    let resolved = false;
+
+    const cleanup = () => {
+      if (!resolved) {
+        resolved = true;
+        URL.revokeObjectURL(url);
+      }
+    };
 
     audio.onloadedmetadata = () => {
-      URL.revokeObjectURL(url);
+      cleanup();
       const duration = audio.duration;
 
-      if (!isFinite(duration)) {
-        reject(new Error("Could not determine audio duration."));
+      // On mobile, WebM recordings often return Infinity for duration
+      if (!isFinite(duration) || duration === 0) {
+        // Allow it through — backend pydub will validate the real duration
+        resolve(-1);
       } else if (duration < minSeconds) {
         reject(
           new Error(
@@ -31,9 +42,21 @@ export function validateAudioDuration(
     };
 
     audio.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Invalid or unsupported audio file."));
+      cleanup();
+      // On mobile, some formats can't be decoded client-side — let backend handle it
+      resolve(-1);
     };
+
+    // Timeout fallback for mobile browsers that never fire loadedmetadata
+    setTimeout(() => {
+      if (!resolved) {
+        cleanup();
+        resolve(-1);
+      }
+    }, 3000);
+
+    audio.preload = "metadata";
+    audio.src = url;
   });
 }
 

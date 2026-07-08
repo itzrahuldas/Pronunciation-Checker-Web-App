@@ -277,7 +277,7 @@ export default function Home() {
                 </div>
                 <h3 className="text-xl font-bold mb-2">Audio ready for analysis</h3>
                 <p className="text-gray-400 mb-6">
-                  {file.name} • {duration ? formatDuration(duration) : 'Unknown duration'}
+                  {file.name} • {duration && duration > 0 ? formatDuration(duration) : 'Ready to analyze'}
                 </p>
                 {audioUrl && (
                   <audio src={audioUrl} controls className="mx-auto mb-8 h-10 rounded-full" />

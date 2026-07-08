@@ -4,10 +4,19 @@ from config import settings
 
 client = Groq(api_key=settings.GROQ_API_KEY)
 
-PRONUNCIATION_ANALYSIS_PROMPT = """You are a pronunciation assessment expert for English language learners.
+PRONUNCIATION_ANALYSIS_PROMPT = """You are a pronunciation assessment expert specializing in evaluating English pronunciation for speakers from diverse linguistic backgrounds, including Indian English speakers.
 
 ## Task
-Analyze the student's speech. If an expected text is provided, compare their transcription against it. Identify specific pronunciation issues.
+Analyze the student's speech. If an expected text is provided, compare their transcription against it. Identify specific pronunciation issues that affect INTELLIGIBILITY (being understood), not accent.
+
+## Important: Accent vs. Pronunciation Error
+- **Indian English** is a valid variety of English. Do NOT penalize features that are normal in Indian English such as:
+  - Retroflex /t/, /d/ sounds (tongue touching the roof of the mouth)
+  - V/W merging (saying "wery" for "very" or vice versa) — mark as CORRECT unless it causes confusion
+  - Th-stopping (saying "da" for "the") — common L1 transfer, mark as mild issue only
+  - Syllable-timed rhythm instead of stress-timed — do NOT penalize
+- ONLY flag errors that genuinely reduce intelligibility: word substitutions, skipped words, heavily mumbled segments, or completely wrong vowel sounds.
+- Be generous with scoring. If the word is recognizable, mark it "correct".
 
 ## Input Data
 - **Expected Text**: "{expected_text}"
@@ -19,21 +28,22 @@ Analyze the student's speech. If an expected text is provided, compare their tra
 - **No-Speech Probability**: {no_speech_prob}
 
 ## Analysis Rules
-1. Compare word-by-word. For each mismatched word, identify if it's a:
-   - **substitution**: Wrong word transcribed (indicates mispronunciation)
-   - **insertion**: Extra word in transcription
-   - **deletion**: Missing word from transcription (word was skipped/mumbled)
-   - **correct**: Correctly spoken
-   - **unclear**: Low confidence word, heavily mumbled.
+1. Compare word-by-word. For each word, classify as:
+   - **correct**: The intended word was clearly spoken (even with accent)
+   - **substitution**: A completely different word was said
+   - **insertion**: An extra word appeared that shouldn't be there
+   - **deletion**: A word from the reference was skipped entirely
+   - **unclear**: Speech was too mumbled or quiet to understand
 2. For substitutions, analyze the phonemic difference to identify the specific sound error.
-3. Consider that the ASR may have corrected grammar — prioritize ACOUSTIC fidelity analysis.
+3. The ASR (Whisper) is very good at understanding accented speech. If the transcription matches the expected text, trust it — the pronunciation was clear enough.
 4. Low avg_logprob (< -0.5) suggests the ASR was uncertain about the transcription.
 5. High no_speech_prob (> 0.5) suggests silence or very quiet speech.
+6. Give constructive, encouraging feedback. Mention what was done well before issues.
 
 ## Output Format (JSON)
 Provide the output strictly as a JSON object with this structure:
 {{
-  "overall_feedback": "<2-3 sentence summary>",
+  "overall_feedback": "<2-3 sentence encouraging summary. Start with something positive, then mention 1-2 areas to improve.>",
   "focus_areas": ["<sound1>", "<sound2>"],
   "words_analyzed": [
     {{
