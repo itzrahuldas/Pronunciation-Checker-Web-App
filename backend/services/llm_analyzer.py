@@ -47,21 +47,26 @@ Provide the output strictly as a JSON object with this structure:
 }}
 """
 
+def _get(obj, key, default=None):
+    if isinstance(obj, dict):
+        return obj.get(key, default)
+    return getattr(obj, key, default)
+
 def analyze_with_llm(expected_text: str, expected_phonemes: dict, transcription_result, transcribed_phonemes: dict):
     if not settings.GROQ_API_KEY:
         raise Exception("Groq API Key is not set")
     
-    words = transcription_result.words if hasattr(transcription_result, "words") else []
-    segments = transcription_result.segments if hasattr(transcription_result, "segments") else []
+    words = _get(transcription_result, "words", [])
+    segments = _get(transcription_result, "segments", [])
     
-    word_timestamps = [{"word": w.word, "start": w.start, "end": w.end} for w in words]
-    avg_logprob = segments[0].avg_logprob if segments else -0.1
-    no_speech_prob = segments[0].no_speech_prob if segments else 0.0
+    word_timestamps = [{"word": _get(w, "word", ""), "start": _get(w, "start", 0), "end": _get(w, "end", 0)} for w in words]
+    avg_logprob = _get(segments[0], "avg_logprob", -0.1) if segments else -0.1
+    no_speech_prob = _get(segments[0], "no_speech_prob", 0.0) if segments else 0.0
 
     prompt = PRONUNCIATION_ANALYSIS_PROMPT.format(
         expected_text=expected_text or "FREE SPEECH (NO REFERENCE)",
         expected_phonemes=json.dumps(expected_phonemes),
-        transcribed_text=transcription_result.text,
+        transcribed_text=_get(transcription_result, "text", ""),
         transcribed_phonemes=json.dumps(transcribed_phonemes),
         word_timestamps=json.dumps(word_timestamps),
         avg_logprob=avg_logprob,

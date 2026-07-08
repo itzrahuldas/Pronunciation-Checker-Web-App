@@ -21,7 +21,7 @@ async def analyze_pronunciation(
         
         # 2. Transcribe Audio
         transcription_result = transcribe_audio(tmp_path)
-        transcribed_text = transcription_result.text
+        transcribed_text = transcription_result.get("text", "") if isinstance(transcription_result, dict) else transcription_result.text
         
         # 3. Phoneme Extraction
         expected_phonemes = {}
