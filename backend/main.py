@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routers import analyze
+from routers import analyze
 
 app = FastAPI(
     title="Pronunciation Checker API",

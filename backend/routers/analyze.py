@@ -1,10 +1,10 @@
 import os
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
-from backend.utils.audio import validate_and_save_audio
-from backend.services.transcription import transcribe_audio
-from backend.services.pronunciation import extract_phonemes_dict
-from backend.services.llm_analyzer import analyze_with_llm
-from backend.services.scoring import compute_final_score
+from utils.audio import validate_and_save_audio
+from services.transcription import transcribe_audio
+from services.pronunciation import extract_phonemes_dict
+from services.llm_analyzer import analyze_with_llm
+from services.scoring import compute_final_score
 
 router = APIRouter()
 

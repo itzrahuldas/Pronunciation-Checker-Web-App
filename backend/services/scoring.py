@@ -1,4 +1,4 @@
-from backend.models.schemas import AnalyzeResponse, WordResult
+from models.schemas import AnalyzeResponse, WordResult
 
 def compute_final_score(llm_analysis: dict, transcription_result, expected_text: str = "") -> AnalyzeResponse:
     words_analyzed = llm_analysis.get("words_analyzed", [])

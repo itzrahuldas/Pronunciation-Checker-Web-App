@@ -2,7 +2,7 @@ import os
 import tempfile
 from fastapi import HTTPException
 from pydub import AudioSegment
-from backend.config import settings
+from config import settings
 
 def validate_and_save_audio(file_bytes: bytes, filename: str) -> str:
     """Validates the audio size and duration and returns path to temporary file."""
