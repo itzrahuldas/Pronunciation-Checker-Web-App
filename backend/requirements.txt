@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-multipart
+groq
+pydub
+pronouncing
+g2p-en
+python-dotenv
+pydantic-settings
