@@ -7,3 +7,4 @@ pronouncing
 g2p-en
 python-dotenv
 pydantic-settings
+pyaudioop
