@@ -11,22 +11,46 @@ def compute_final_score(llm_analysis: dict, transcription_result, expected_text:
     
     total_words = len(words_analyzed)
     correct_words = sum(1 for w in words_analyzed if w.get("status") == "correct")
+    unclear_words = sum(1 for w in words_analyzed if w.get("status") == "unclear")
     
     # Base accuracy
     accuracy_score = int((correct_words / total_words) * 100) if total_words > 0 else 0
     
-    # Acoustic fluency based on avg_logprob
+    # Acoustic fluency based on avg_logprob across ALL segments
     segments = _get(transcription_result, "segments", [])
     if segments and len(segments) > 0:
-        avg_logprob = _get(segments[0], "avg_logprob", -0.1)
+        # Average across all segments, not just the first one
+        logprobs = []
+        for seg in segments:
+            lp = _get(seg, "avg_logprob", -0.3)
+            if lp is not None:
+                logprobs.append(lp)
+        avg_logprob = sum(logprobs) / len(logprobs) if logprobs else -0.3
     else:
-        avg_logprob = -0.1
+        avg_logprob = -0.3
     
-    # Normalize logprob to a 0-100 score roughly. -1.0 is bad, 0.0 is perfect.
-    fluency_score = int(max(0, min(100, (avg_logprob + 1.0) * 100)))
+    # Better fluency normalization:
+    # -1.0 = very bad (0%), -0.5 = below average (50%), -0.2 = good (80%), 0.0 = perfect (100%)
+    # Use a more generous curve
+    if avg_logprob >= -0.1:
+        fluency_score = 95
+    elif avg_logprob >= -0.2:
+        fluency_score = 85
+    elif avg_logprob >= -0.3:
+        fluency_score = 75
+    elif avg_logprob >= -0.5:
+        fluency_score = 60
+    elif avg_logprob >= -0.7:
+        fluency_score = 40
+    else:
+        fluency_score = int(max(0, min(30, (avg_logprob + 1.0) * 30)))
 
     # Overall = 60% accuracy + 40% fluency
     overall_score = int((accuracy_score * 0.6) + (fluency_score * 0.4))
+    
+    # Ensure minimum scores for mostly-clear speech
+    if total_words > 0 and unclear_words == 0 and overall_score < 50:
+        overall_score = max(overall_score, 50)
     
     word_results = []
     
