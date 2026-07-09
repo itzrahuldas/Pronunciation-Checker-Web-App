@@ -19,7 +19,12 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.variable} font-sans antialiased`}>
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-gray-900 to-slate-950 text-white">
+        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-gray-900 to-slate-950 text-white relative overflow-x-hidden">
+          {/* Ambient background orbs */}
+          <div className="bg-orb bg-orb-1" />
+          <div className="bg-orb bg-orb-2" />
+          <div className="bg-orb bg-orb-3" />
+
           <header className="border-b border-white/5 backdrop-blur-xl bg-slate-950/60 sticky top-0 z-50">
             <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
               <a href="/" className="flex items-center gap-3 group">

@@ -6,6 +6,8 @@ export interface WordResult {
   expected_phonemes: string | null;
   issue: string | null;
   tip: string | null;
+  you_said: string | null;
+  correct_pronunciation: string | null;
   start_time: number | null;
   end_time: number | null;
   confidence: number | null;

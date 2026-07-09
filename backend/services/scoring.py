@@ -71,6 +71,8 @@ def compute_final_score(llm_analysis: dict, transcription_result, expected_text:
                 expected_phonemes=None,
                 issue=w_data.get("phoneme_issue"),
                 tip=w_data.get("tip"),
+                you_said=w_data.get("you_said"),
+                correct_pronunciation=w_data.get("correct_pronunciation"),
                 start_time=start_time,
                 end_time=end_time,
                 confidence=None

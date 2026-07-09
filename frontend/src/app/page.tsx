@@ -506,58 +506,98 @@ export default function Home() {
           <div className="glass-card p-6 md:p-8">
             <h3 className="text-xl font-bold mb-6">Word-by-Word Analysis</h3>
             
-            <div className="flex flex-wrap gap-2 mb-8 leading-loose">
+            {/* Word cloud — tighter, no excessive gaps */}
+            <div className="flex flex-wrap gap-x-2 gap-y-3 mb-6 p-4 rounded-xl bg-black/20">
               {result.words.map((w, i) => {
-                let colorClass = "text-gray-300";
-                let bgClass = "";
-                
                 if (w.status === "correct") {
-                  colorClass = "text-green-400";
+                  return (
+                    <span key={i} className="text-base font-medium text-green-400 cursor-default" title="Correct">
+                      {w.word}
+                    </span>
+                  );
                 } else if (w.status === "substitution" || w.status === "insertion") {
-                  colorClass = "text-red-400 font-semibold";
-                  bgClass = "bg-red-500/10 border border-red-500/20 px-1.5 rounded-md";
+                  return (
+                    <span
+                      key={i}
+                      className="text-base font-semibold text-red-400 bg-red-500/10 border border-red-500/25 px-2 py-0.5 rounded-md cursor-default"
+                      title={w.issue || "Mispronounced"}
+                    >
+                      {w.word}
+                    </span>
+                  );
                 } else if (w.status === "deletion") {
-                  colorClass = "text-gray-500 line-through";
+                  return (
+                    <span key={i} className="text-base text-gray-500 line-through cursor-default" title="Skipped">
+                      {w.word}
+                    </span>
+                  );
                 } else if (w.status === "unclear") {
-                  colorClass = "text-yellow-400 underline decoration-yellow-500/50 decoration-wavy";
+                  return (
+                    <span
+                      key={i}
+                      className="text-base text-yellow-400 underline decoration-yellow-500/50 decoration-wavy cursor-default"
+                      title={w.issue || "Unclear"}
+                    >
+                      {w.word}
+                    </span>
+                  );
                 }
-                
                 return (
-                  <span 
-                    key={i} 
-                    className={`text-lg cursor-default transition-colors hover:opacity-80 ${colorClass} ${bgClass}`} 
-                    title={w.issue || "Correct"}
-                  >
-                    {w.word}
-                  </span>
+                  <span key={i} className="text-base text-gray-300 cursor-default">{w.word}</span>
                 );
               })}
             </div>
             
             {/* Legend */}
-            <div className="flex flex-wrap gap-4 text-xs text-gray-400 border-t border-white/10 pt-4">
+            <div className="flex flex-wrap gap-4 text-xs text-gray-400 border-t border-white/10 pt-4 mb-0">
               <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-green-400"></div> Correct</span>
               <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-red-400"></div> Mispronounced</span>
               <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-yellow-400"></div> Unclear</span>
               <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-gray-500"></div> Skipped</span>
             </div>
             
-            {/* Detailed Issues */}
-            {result.words.filter(w => w.issue).length > 0 && (
-              <div className="mt-8 pt-8 border-t border-white/10 space-y-4">
-                <h4 className="font-semibold text-gray-300 mb-4">Specific Feedback</h4>
-                {result.words.filter(w => w.issue).map((w, i) => (
-                  <div key={i} className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-orange-500/20 transition-colors">
-                    <div className="flex items-start gap-4">
-                      <div className="w-8 h-8 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0 font-bold text-sm">
+            {/* Detailed Issues with Pronunciation Comparison */}
+            {result.words.filter(w => w.issue || w.you_said).length > 0 && (
+              <div className="mt-6 pt-6 border-t border-white/10 space-y-3">
+                <h4 className="font-semibold text-gray-200 mb-4">🔍 Detailed Feedback</h4>
+                {result.words.filter(w => w.issue || w.you_said).map((w, i) => (
+                  <div key={i} className="p-4 rounded-xl bg-white/4 border border-white/8 hover:border-orange-500/20 transition-colors">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-orange-500/15 text-orange-400 flex items-center justify-center shrink-0 font-bold text-sm mt-0.5">
                         !
                       </div>
-                      <div>
-                        <h5 className="font-bold text-lg mb-1">{w.word}</h5>
-                        <p className="text-gray-300 mb-2">{w.issue}</p>
+                      <div className="flex-1 min-w-0">
+                        {/* Word title */}
+                        <h5 className="font-bold text-base mb-1 text-white">
+                          &quot;{w.expected || w.word}&quot;
+                        </h5>
+
+                        {/* Pronunciation comparison — you said vs correct */}
+                        {(w.you_said || w.correct_pronunciation) && (
+                          <div className="pronunciation-compare flex-wrap">
+                            <span className="text-gray-500 text-xs shrink-0">You said:</span>
+                            {w.you_said && (
+                              <span className="pronunciation-you-said">{w.you_said}</span>
+                            )}
+                            {w.correct_pronunciation && (
+                              <>
+                                <span className="pronunciation-arrow shrink-0">→</span>
+                                <span className="text-gray-500 text-xs shrink-0">Correct:</span>
+                                <span className="pronunciation-correct">{w.correct_pronunciation}</span>
+                              </>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Issue description */}
+                        {w.issue && (
+                          <p className="text-gray-400 text-sm mt-2 leading-relaxed">{w.issue}</p>
+                        )}
+
+                        {/* Tip */}
                         {w.tip && (
-                          <div className="text-sm text-amber-400 bg-amber-500/10 px-3 py-2 rounded-lg inline-block">
-                            💡 Tip: {w.tip}
+                          <div className="mt-2 text-sm text-amber-300 bg-amber-500/8 border border-amber-500/15 px-3 py-2 rounded-lg inline-block">
+                            💡 {w.tip}
                           </div>
                         )}
                       </div>

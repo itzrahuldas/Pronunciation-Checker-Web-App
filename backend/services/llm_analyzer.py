@@ -51,6 +51,18 @@ When no expected text is provided:
 6. Give constructive, encouraging feedback. Mention what was done well before suggesting improvements.
 7. Be generous with scoring overall. Most clearly spoken words should be "correct".
 
+## Pronunciation Spelling Rules (for you_said and correct_pronunciation)
+Use simple phonetic respelling (NOT IPA symbols). Write it so a non-expert can read it and understand how to say the word:
+- Use everyday English letters to represent sounds
+- Examples:
+  - "through" → correct: "throo", you_said might be: "th-roo" or "throo-w" etc.
+  - "the" → correct: "thuh" (unstressed) or "thee" (stressed)
+  - "pronunciation" → correct: "pruh-nun-see-AY-shun"
+  - "clothes" → correct: "klohz", not "kloh-thez"
+  - Capital letters = stressed syllable
+- Only fill you_said if the word had an issue (status is NOT "correct")
+- For correct words, set you_said and correct_pronunciation to null
+
 ## Output Format (JSON)
 Provide the output strictly as a JSON object with this structure:
 {{
@@ -61,12 +73,15 @@ Provide the output strictly as a JSON object with this structure:
       "expected": "<word if in reference text, otherwise null>",
       "heard": "<word transcribed or null if deleted>",
       "status": "correct|substitution|insertion|deletion|unclear",
-      "phoneme_issue": "<description of specific sound error or null>",
-      "tip": "<actionable pronunciation tip or null>"
+      "you_said": "<simple phonetic spelling of how user said it, or null if correct>",
+      "correct_pronunciation": "<simple phonetic spelling of the correct way, or null if correct>",
+      "phoneme_issue": "<1 sentence description of the sound error or null>",
+      "tip": "<one actionable tip to fix it or null>"
     }}
   ]
 }}
 """
+
 
 def _get(obj, key, default=None):
     if isinstance(obj, dict):

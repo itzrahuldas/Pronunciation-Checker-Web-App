@@ -10,6 +10,84 @@
   --glow-strong: rgba(249, 115, 22, 0.6);
 }
 
+/* ─── Ambient Background Orbs ─── */
+.bg-orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bg-orb-1 {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(249,115,22,0.06) 0%, transparent 70%);
+  top: -200px;
+  left: -200px;
+  animation: orb-drift 20s ease-in-out infinite alternate;
+}
+
+.bg-orb-2 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(245,158,11,0.05) 0%, transparent 70%);
+  bottom: -150px;
+  right: -150px;
+  animation: orb-drift 25s ease-in-out infinite alternate-reverse;
+}
+
+.bg-orb-3 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(251,146,60,0.04) 0%, transparent 70%);
+  top: 50%;
+  left: 60%;
+  animation: orb-drift 18s ease-in-out infinite alternate;
+}
+
+@keyframes orb-drift {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(40px, 30px) scale(1.08); }
+}
+
+/* ─── Pronunciation comparison card ─── */
+.pronunciation-compare {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+}
+
+.pronunciation-you-said {
+  color: #f87171;
+  background: rgba(239,68,68,0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(239,68,68,0.2);
+  letter-spacing: 0.05em;
+}
+
+.pronunciation-correct {
+  color: #4ade80;
+  background: rgba(74,222,128,0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(74,222,128,0.2);
+  letter-spacing: 0.05em;
+}
+
+.pronunciation-arrow {
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+
 * {
   font-family: var(--font-inter), system-ui, sans-serif;
 }
