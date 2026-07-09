@@ -569,7 +569,7 @@ export default function Home() {
                       <div className="flex-1 min-w-0">
                         {/* Word title */}
                         <h5 className="font-bold text-base mb-1 text-white">
-                          &quot;{w.expected || w.word}&quot;
+                          &quot;{w.word}&quot;
                         </h5>
 
                         {/* Pronunciation comparison — you said vs correct */}
