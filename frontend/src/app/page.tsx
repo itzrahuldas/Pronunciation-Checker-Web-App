@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Mic, Upload, CheckCircle, XCircle, AlertCircle, RefreshCw, Loader2, Play, Zap, Globe, Shield, BarChart3 } from "lucide-react";
+import { useState, useRef } from "react";
+import { Mic, Upload, CheckCircle, AlertCircle, RefreshCw, Zap, Globe, Shield, BarChart3 } from "lucide-react";
 import { validateAudioDuration, MAX_FILE_SIZE_MB, isAcceptedAudioType, formatDuration } from "@/lib/audio-utils";
-import { analyzeAudio, AnalyzeResponse, WordResult } from "@/lib/api";
+import { analyzeAudio, AnalyzeResponse } from "@/lib/api";
 import { REFERENCE_PASSAGES } from "@/lib/constants";
 
 /* ─── Sound Wave Component ─── */
@@ -38,6 +38,10 @@ function ScoreBar({ label, score, color }: { label: string; score: number; color
   );
 }
 
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
 export default function Home() {
   const [mode, setMode] = useState<"read" | "free">("read");
   const [passageId, setPassageId] = useState(REFERENCE_PASSAGES[0].id);
@@ -48,7 +52,10 @@ export default function Home() {
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   
-  const [isConsentGiven, setIsConsentGiven] = useState(false);
+  const [isConsentGiven, setIsConsentGiven] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("dpdp_consent") === "true";
+  });
   const [showConsentModal, setShowConsentModal] = useState(false);
   
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -59,13 +66,6 @@ export default function Home() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const activePassage = REFERENCE_PASSAGES.find((p) => p.id === passageId);
-
-  useEffect(() => {
-    const consent = localStorage.getItem("dpdp_consent");
-    if (consent === "true") {
-      setIsConsentGiven(true);
-    }
-  }, []);
 
   const handleConsent = (agreed: boolean) => {
     if (agreed) {
@@ -102,8 +102,8 @@ export default function Home() {
       setDuration(dur);
       setFile(selectedFile);
       setAudioUrl(URL.createObjectURL(selectedFile));
-    } catch (err: any) {
-      setError(err.message || "Failed to process audio file.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to process audio file."));
       setFile(null);
       setDuration(null);
     }
@@ -132,8 +132,8 @@ export default function Home() {
       const expectedText = mode === "read" ? activePassage?.text || "" : "";
       const response = await analyzeAudio(file, expectedText);
       setResult(response);
-    } catch (err: any) {
-      setError(err.message || "Analysis failed. Please try again.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Analysis failed. Please try again."));
     } finally {
       setIsAnalyzing(false);
     }

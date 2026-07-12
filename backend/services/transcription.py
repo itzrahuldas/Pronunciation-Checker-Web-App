@@ -17,6 +17,7 @@ def transcribe_audio(file_path: str):
             file=(file_path, file.read()),
             model="whisper-large-v3",
             response_format="verbose_json",
-            timestamp_granularities=["word", "segment"]
+            timestamp_granularities=["word", "segment"],
+            timeout=settings.GROQ_TRANSCRIPTION_TIMEOUT_SEC
         )
     return transcription

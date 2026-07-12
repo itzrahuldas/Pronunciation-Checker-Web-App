@@ -7,7 +7,7 @@ export default function PrivacyPage() {
       
       <div className="prose prose-invert max-w-none space-y-6 text-gray-300">
         <p>
-          This privacy notice explains how SpeakScore collects, uses, and protects your data in compliance with India's 
+          This privacy notice explains how SpeakScore collects, uses, and protects your data in compliance with India&apos;s 
           <strong> Digital Personal Data Protection (DPDP) Act 2023</strong>.
         </p>
 
@@ -35,7 +35,7 @@ export default function PrivacyPage() {
             SpeakScore employs a <strong>strict zero-retention policy</strong> for audio data:
           </p>
           <ul className="list-disc pl-5 mt-2 space-y-1">
-            <li>Audio files are held in server memory only for the duration of the analysis (typically 3-5 seconds).</li>
+            <li>Audio files are held only for the active request and may be temporarily written for validation and AI provider processing.</li>
             <li>Once the pronunciation score is generated, the audio file is <strong>immediately and permanently deleted</strong> from our servers.</li>
             <li>We do not store audio recordings in any database or backup system.</li>
           </ul>

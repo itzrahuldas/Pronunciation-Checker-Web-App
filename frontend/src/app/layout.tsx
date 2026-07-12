@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -27,17 +28,17 @@ export default function RootLayout({
 
           <header className="border-b border-white/5 backdrop-blur-xl bg-slate-950/60 sticky top-0 z-50">
             <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-              <a href="/" className="flex items-center gap-3 group">
+              <Link href="/" className="flex items-center gap-3 group">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-lg font-bold shadow-lg shadow-orange-500/20 group-hover:shadow-orange-500/40 transition-shadow">
                   S
                 </div>
                 <span className="text-xl font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
                   SpeakScore
                 </span>
-              </a>
+              </Link>
               <nav className="flex items-center gap-6 text-sm text-gray-400">
-                <a href="/" className="hover:text-orange-400 transition-colors">Home</a>
-                <a href="/privacy" className="hover:text-orange-400 transition-colors">Privacy</a>
+                <Link href="/" className="hover:text-orange-400 transition-colors">Home</Link>
+                <Link href="/privacy" className="hover:text-orange-400 transition-colors">Privacy</Link>
                 <a
                   href="https://github.com/itzrahuldas/pronunciation-checker-web-app"
                   target="_blank"

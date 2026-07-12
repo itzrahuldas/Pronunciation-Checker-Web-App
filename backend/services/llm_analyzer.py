@@ -1,4 +1,6 @@
 import json
+import re
+from difflib import SequenceMatcher
 from groq import Groq
 from config import settings
 
@@ -88,6 +90,132 @@ def _get(obj, key, default=None):
         return obj.get(key, default)
     return getattr(obj, key, default)
 
+
+def _tokenize(text: str) -> list[str]:
+    return re.findall(r"[A-Za-z']+", text or "")
+
+
+def build_fallback_analysis(expected_text: str, transcription_result) -> dict:
+    """Return a deterministic, lower-detail analysis if LLM feedback is unavailable."""
+    transcribed_text = _get(transcription_result, "text", "") or ""
+    expected_words = _tokenize(expected_text)
+    heard_words = _tokenize(transcribed_text)
+
+    words_analyzed = []
+
+    if expected_words:
+        matcher = SequenceMatcher(
+            None,
+            [w.lower() for w in expected_words],
+            [w.lower() for w in heard_words]
+        )
+
+        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+            if tag == "equal":
+                for expected, heard in zip(expected_words[i1:i2], heard_words[j1:j2]):
+                    words_analyzed.append({
+                        "expected": expected,
+                        "heard": heard,
+                        "status": "correct",
+                        "you_said": None,
+                        "correct_pronunciation": None,
+                        "phoneme_issue": None,
+                        "tip": None
+                    })
+            elif tag == "replace":
+                expected_slice = expected_words[i1:i2]
+                heard_slice = heard_words[j1:j2]
+                paired = min(len(expected_slice), len(heard_slice))
+
+                for index in range(paired):
+                    words_analyzed.append({
+                        "expected": expected_slice[index],
+                        "heard": heard_slice[index],
+                        "status": "substitution",
+                        "you_said": heard_slice[index],
+                        "correct_pronunciation": expected_slice[index],
+                        "phoneme_issue": "The spoken word did not match the reference word.",
+                        "tip": "Replay this part and say the reference word slowly, then repeat at normal speed."
+                    })
+
+                for expected in expected_slice[paired:]:
+                    words_analyzed.append({
+                        "expected": expected,
+                        "heard": None,
+                        "status": "deletion",
+                        "you_said": None,
+                        "correct_pronunciation": expected,
+                        "phoneme_issue": "This reference word was not detected in the speech.",
+                        "tip": "Try reading the full sentence again without skipping this word."
+                    })
+
+                for heard in heard_slice[paired:]:
+                    words_analyzed.append({
+                        "expected": None,
+                        "heard": heard,
+                        "status": "insertion",
+                        "you_said": heard,
+                        "correct_pronunciation": None,
+                        "phoneme_issue": "An extra word was detected that was not in the reference.",
+                        "tip": "Read the reference sentence once more and keep the word order steady."
+                    })
+            elif tag == "delete":
+                for expected in expected_words[i1:i2]:
+                    words_analyzed.append({
+                        "expected": expected,
+                        "heard": None,
+                        "status": "deletion",
+                        "you_said": None,
+                        "correct_pronunciation": expected,
+                        "phoneme_issue": "This reference word was not detected in the speech.",
+                        "tip": "Try reading the full sentence again without skipping this word."
+                    })
+            elif tag == "insert":
+                for heard in heard_words[j1:j2]:
+                    words_analyzed.append({
+                        "expected": None,
+                        "heard": heard,
+                        "status": "insertion",
+                        "you_said": heard,
+                        "correct_pronunciation": None,
+                        "phoneme_issue": "An extra word was detected that was not in the reference.",
+                        "tip": "Read the reference sentence once more and keep the word order steady."
+                    })
+    else:
+        words_analyzed = [
+            {
+                "expected": None,
+                "heard": word,
+                "status": "correct",
+                "you_said": None,
+                "correct_pronunciation": None,
+                "phoneme_issue": None,
+                "tip": None
+            }
+            for word in heard_words
+        ]
+
+    if not words_analyzed:
+        words_analyzed.append({
+            "expected": expected_words[0] if expected_words else None,
+            "heard": None,
+            "status": "unclear",
+            "you_said": None,
+            "correct_pronunciation": expected_words[0] if expected_words else None,
+            "phoneme_issue": "No clear speech was detected in the recording.",
+            "tip": "Record again in a quieter place and speak closer to the microphone."
+        })
+
+    return {
+        "overall_feedback": (
+            "Your audio was transcribed successfully, but detailed AI pronunciation feedback is temporarily unavailable. "
+            "This fallback result uses transcript alignment and acoustic confidence so you still get a useful score."
+        ),
+        "focus_areas": ["retry detailed AI feedback"],
+        "words_analyzed": words_analyzed
+    }
+
+
 def analyze_with_llm(expected_text: str, expected_phonemes: dict, transcription_result, transcribed_phonemes: dict):
     if not settings.GROQ_API_KEY:
         raise Exception("Groq API Key is not set")
@@ -113,7 +241,8 @@ def analyze_with_llm(expected_text: str, expected_phonemes: dict, transcription_
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"},
-        temperature=0.1
+        temperature=0.1,
+        timeout=settings.GROQ_LLM_TIMEOUT_SEC
     )
     
     return json.loads(response.choices[0].message.content)
